@@ -25,20 +25,13 @@ char* swap(char* input) {
                 add = "&gt;";
                 add_len = 4;
                 break;
-            
-            default:
-                new_len++;
-                break;
         }
-        new_len += add_len;
-        if (new_len >= current_len) {
+        if (new_len + add_len >= current_len) {
             current_len += 10;
             output = (char*)realloc(output, current_len);
         }
-        char* tmp = malloc(5);
-        memcpy(tmp, add, add_len);
-        strcat(output, tmp);
-        free(tmp);
+        memcpy(&output[new_len], add, add_len);
+        new_len += add_len;
 
         input++;
     }

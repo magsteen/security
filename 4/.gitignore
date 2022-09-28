@@ -2,3 +2,7 @@ hello
 hello.o
 std_err_output.txt
 c-example
+build
+.vscode
+Cargo.lock
+target

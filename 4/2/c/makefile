@@ -1,6 +1,6 @@
 build:
-	gcc main.c -o main
+	cc main.c -o main
 
 run: build
 	./main
-	rm main
+	rm ./main

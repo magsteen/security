@@ -1,4 +1,0 @@
-{
-    "cmake.sourceDirectory": "${workspaceFolder}/2/cpp",
-    "cmake.sourceDirectory": "${workspaceFolder}/3/c-example"
-}
