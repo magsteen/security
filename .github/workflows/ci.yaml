@@ -1,0 +1,36 @@
+name: CMake
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      CC: "/usr/bin/clang"
+      
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Clang
+      uses: egor-tensin/setup-clang@v1
+      with:
+        version: latest
+        platform: x64
+
+    - name: Configure CMake
+      working-directory: ${{github.workspace}}/5/c/
+      run: cmake -B ./build
+
+    - name: Build
+      # Build your program with the given configuration
+      working-directory: ${{github.workspace}}/5/c/
+      run: cmake --build ./build
+
+    - name: Fuzzy Test
+      working-directory: ${{github.workspace}}/5/c/build
+      run: ./utility_fuzzer_test -max_total_time=60
+      
