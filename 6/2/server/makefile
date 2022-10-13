@@ -1,4 +1,4 @@
 make:
 	go build
-	./1
-	rm 1
+	./server
+	rm server
