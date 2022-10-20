@@ -6,3 +6,5 @@ build
 .vscode
 Cargo.lock
 target
+
+solution*.tar.gz
