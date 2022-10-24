@@ -4,9 +4,12 @@ import "fmt"
 
 var BIG_ALPH = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZÆØÅ")
 var LIL_ALPH = []rune("abcdefghijklmnopqrstuvwxyzæøå")
-var n = len(BIG_ALPH)
+var ALPH_LEN = len(BIG_ALPH)
 
 func main() {
+	// Ved skift nr 12 ser vi en lesbar mld
+	// 'hjerneneralene' -> 'hjernen er alene'
+
 	c := "YÆVFB VBVFR ÅVBV"
 	decrypt(c)
 }
@@ -20,7 +23,7 @@ func decrypt(mes string) {
 				continue
 			}
 			j := index(BIG_ALPH, m)
-			res += string(LIL_ALPH[(j+i)%n])
+			res += string(LIL_ALPH[(j+i)%ALPH_LEN])
 		}
 		fmt.Printf("Skift %d: %s\n", i, res)
 	}

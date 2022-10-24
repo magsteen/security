@@ -6,17 +6,29 @@ var BIG_ALPH = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZÆØÅ")
 var LIL_ALPH = []rune("abcdefghijklmnopqrstuvwxyzæøå")
 
 func main() {
-	kryptedAlphabet := enkrypt(LIL_ALPH)
+	encrypt_a := 11
+	encrypt_b := 5
+
+	decrypt_a := 37
+	decrypt_b := 11
+
+	// a)
+	kryptedAlphabet := enkrypt(LIL_ALPH, encrypt_a, encrypt_b)
 	fmt.Printf("Krypt sequence: %s\n", kryptedAlphabet)
 
-	dekryptedAlphabet := dekrypt([]rune(kryptedAlphabet))
+	// b)
+	// funksjonen er surjektiv, som betyr at det eksisterer en input for alle mulige
+	// output innenfor mengden brukt i funksjonen.
+
+	// c)
+	dekryptedAlphabet := dekrypt([]rune(kryptedAlphabet), decrypt_a, decrypt_b)
 	fmt.Printf("Inverse sequence: %s\n", dekryptedAlphabet)
 
 	m := "alice"
-	fmt.Printf("'%s' enkrypted: %s\n", m, enkrypt([]rune(m)))
+	fmt.Printf("'%s' enkrypted: %s\n", m, enkrypt([]rune(m), encrypt_a, encrypt_b))
 
 	c := "SIØPBE"
-	fmt.Printf("'%s' dekrypted: %s\n", c, dekrypt([]rune(c)))
+	fmt.Printf("'%s' dekrypted: %s\n", c, dekrypt([]rune(c), decrypt_a, decrypt_b))
 }
 
 func f(a, x, b, n int) rune {
@@ -35,9 +47,7 @@ func fInvers(a, y, b, n int) rune {
 	return LIL_ALPH[r]
 }
 
-func enkrypt(mes []rune) string {
-	a := 11
-	b := 5
+func enkrypt(mes []rune, a, b int) string {
 	n := len(LIL_ALPH)
 
 	var res string
@@ -49,9 +59,7 @@ func enkrypt(mes []rune) string {
 	return res
 }
 
-func dekrypt(mes []rune) string {
-	a := 37
-	b := 11
+func dekrypt(mes []rune, a, b int) string {
 	n := len(BIG_ALPH)
 
 	var res string
