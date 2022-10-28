@@ -7,7 +7,7 @@ var LIL_ALPH = []rune("abcdefghijklmnopqrstuvwxyzæøå")
 var ALPH_LEN = len(BIG_ALPH)
 
 func main() {
-	// Ved skift nr 12 ser vi en lesbar mld
+	// By skift nr 12 we see a readable message (in norwegian)
 	// 'hjerneneralene' -> 'hjernen er alene'
 
 	c := "YÆVFB VBVFR ÅVBV"

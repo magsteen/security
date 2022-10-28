@@ -30,11 +30,6 @@ func main() {
 	keyB := "brus"
 	resB := decrypt(mesB, keyB)
 	fmt.Printf("Start value: %s, Decrypted: %s\n", mesB, resB)
-
-	// c)
-	// a 15 character key gives 15^29 permutations (if only using the small alphabet).
-	// 15^29 equals roughly 1.278340e+034
-	// Will not consider this safe at all
 }
 
 func encrypt(mes, key string) string {

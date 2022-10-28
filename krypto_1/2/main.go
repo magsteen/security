@@ -14,9 +14,7 @@ func main() {
 	Z_a := makeMultTable(n_a - 1)
 	printTable(Z_a, n_a)
 
-	// b) Fra tabellen ser vi at tallene 1, 5, 7 og 11 har multiplikative inverser
-
-	// c) Fra tabellen ser vi at tallene 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 har multiplikative inverser.
+	// c)
 	fmt.Println("\nc)")
 	const n_c = 11
 	Z_c := makeMultTable(n_c - 1)
@@ -33,16 +31,6 @@ func main() {
 	} else {
 		fmt.Printf("Brute force found multiplicative inverse %d, for %d (mod 29)\n", mi, a_d)
 	}
-
-	// e)
-	// Det finnes én mult invers per tall a som ikke har noen felles faktorer med n
-
-	// Eksempel:
-	// n = 27. 27 er delelig med 3. Dermed har alle tall a (som er element i Z_27)
-	// én mult invers, untatt de som er delelig på 3.
-
-	// Dette betyr også at for primtall mengder, som 29, vil alle a (som er element i Z_29)
-	// ha en mult invers.
 }
 
 func makeMultTable(n int) [][]int {

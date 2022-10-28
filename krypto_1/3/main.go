@@ -5,28 +5,28 @@ import "fmt"
 var BIG_ALPH = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZÆØÅ")
 var LIL_ALPH = []rune("abcdefghijklmnopqrstuvwxyzæøå")
 
+var ALPH_LEN = len(BIG_ALPH)
+
 func main() {
 	encrypt_a := 11
 	encrypt_b := 5
 
-	decrypt_a := 37
+	decrypt_a := 8
 	decrypt_b := 11
 
 	// a)
-	kryptedAlphabet := enkrypt(LIL_ALPH, encrypt_a, encrypt_b)
+	kryptedAlphabet := enkrypt(append(LIL_ALPH, []rune("aaa")...), encrypt_a, encrypt_b)
 	fmt.Printf("Krypt sequence: %s\n", kryptedAlphabet)
-
-	// b)
-	// funksjonen er surjektiv, som betyr at det eksisterer en input for alle mulige
-	// output innenfor mengden brukt i funksjonen.
 
 	// c)
 	dekryptedAlphabet := dekrypt([]rune(kryptedAlphabet), decrypt_a, decrypt_b)
 	fmt.Printf("Inverse sequence: %s\n", dekryptedAlphabet)
 
+	// d)
 	m := "alice"
 	fmt.Printf("'%s' enkrypted: %s\n", m, enkrypt([]rune(m), encrypt_a, encrypt_b))
 
+	// e)
 	c := "SIØPBE"
 	fmt.Printf("'%s' dekrypted: %s\n", c, dekrypt([]rune(c), decrypt_a, decrypt_b))
 }
