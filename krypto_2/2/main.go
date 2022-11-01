@@ -9,8 +9,9 @@ const ALPH_STRING = " abcdefghijklmnopqrstuvwxyzæøå,."
 const IV = 13
 
 var ALPH_RUNES = []rune(ALPH_STRING)
-var RUNE_MAP, INT_MAP = createAlphabetMap()
 var ALPH_LEN = len(ALPH_RUNES)
+
+var RUNE_MAP, INT_MAP = createAlphabetMap()
 
 func createAlphabetMap() (map[rune]int, map[int]rune) {
 	runeMap := make(map[rune]int)

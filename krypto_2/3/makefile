@@ -1,6 +1,6 @@
 make:
 	go build
-	./2
+	./3
 
 clean:
-	rm 2
+	rm 3
