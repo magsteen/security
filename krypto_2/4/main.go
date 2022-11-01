@@ -58,15 +58,26 @@ func tableToString(t [][]StateValue) string {
 }
 
 func main() {
+	// n := 2
 	// r := 2
 	// c := 2
 	//e := 8
-	state := createState(2)
+	state := [][]StateValue{
+		{0x00, 0x01, 0x02},
+		{0x03, 0x04, 0x05},
+		{0x06, 0x07, 0x08},
+	}
 	fmt.Println(tableToString(state))
 
 	fmt.Println(tableToString(SUB_BYTES_TABLE))
 
 	state = subBytes(state)
+	fmt.Println(tableToString(state))
+
+	state = shiftRows(state)
+	fmt.Println(tableToString(state))
+
+	state = mixColumnsSkift(state)
 	fmt.Println(tableToString(state))
 }
 
@@ -78,26 +89,9 @@ func createState(dim int) [][]StateValue {
 	return res
 }
 
-// func createSubBytesTable() [][]StateValue {
-
-// 	table := createState(ALPH_LEN)
-// 	count := 0
-// 	for i, row := range table {
-// 		for j := range row {
-// 			table[i][j] = StateValue(count)
-// 			count++
-// 		}
-// 	}
-
-// 	return table
-// }
-
 func splitHexStringToInts(s string) (row int, col int) {
 	runes := []rune(s)
-	row = RUNE_MAP[runes[0]]
-	col = RUNE_MAP[runes[1]]
-
-	return
+	return RUNE_MAP[runes[0]], RUNE_MAP[runes[1]]
 }
 
 func subBytes(state [][]StateValue) [][]StateValue {
@@ -109,4 +103,47 @@ func subBytes(state [][]StateValue) [][]StateValue {
 	}
 
 	return state
+}
+
+func shiftRows(state [][]StateValue) [][]StateValue {
+	maxShift := len(state)
+	newState := createState(maxShift)
+
+	for i, row := range state {
+		for j := range row {
+			newState[i][j] = state[i][(i+j)%maxShift]
+		}
+	}
+
+	return newState
+}
+
+func f(a StateValue) StateValue {
+	var c StateValue
+	b := a << 1
+
+	if a >= 0x80 {
+		c = 0x1B
+	} else {
+		c = 0x00
+	}
+
+	return a ^ b ^ c
+}
+
+func mixColumnsSkift(state [][]StateValue) [][]StateValue {
+	stateLen := len(state)
+	newState := createState(stateLen)
+
+	for i, row := range state {
+		for j := range row {
+			b := state[i][j]
+			for k := 0; k < stateLen; k++ {
+				b = b ^ f(state[k][j])
+			}
+			newState[j][i] = b
+		}
+	}
+
+	return newState
 }
