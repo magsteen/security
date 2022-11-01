@@ -2,24 +2,21 @@ package main
 
 import (
 	"fmt"
+	"strings"
 )
 
-var ALPH = []rune(" abcdefghijklmnopqrstuvwxyzæøå,.")
-
+const ALPH_STRING = " abcdefghijklmnopqrstuvwxyzæøå,."
 const IV = 13
 
-var RUNE_MAP, BYTE_MAP = createAlphabetMap()
-var ALPH_LEN = len(ALPH)
-
-// func intToBitString(i int) byte {
-// 	return byte(fmt.Sprintf("%05b", i))
-// }
+var ALPH_RUNES = []rune(ALPH_STRING)
+var RUNE_MAP, INT_MAP = createAlphabetMap()
+var ALPH_LEN = len(ALPH_RUNES)
 
 func createAlphabetMap() (map[rune]int, map[int]rune) {
 	runeMap := make(map[rune]int)
 	byteMap := make(map[int]rune)
 
-	for i, symbol := range ALPH {
+	for i, symbol := range ALPH_RUNES {
 		runeMap[symbol] = i
 		byteMap[i] = symbol
 	}
@@ -27,9 +24,17 @@ func createAlphabetMap() (map[rune]int, map[int]rune) {
 }
 
 func main() {
-	// a)
-	res := encrypt("dette er en test", 5)
-	fmt.Println(res)
+	plain1 := "aaaaaa"
+	crypted1 := encrypt(plain1)
+	fmt.Printf("Encrypt(%s) -> %s\n", plain1, crypted1)
+
+	plain2 := "dette er en test"
+	crypted2 := encrypt(plain2)
+	fmt.Printf("Encrypt(%s) -> %s\n", plain2, crypted2)
+
+	crypted3 := "qvxæyy hkgdgk,,oqhdnc"
+	plain3 := decrypt(crypted3)
+	fmt.Printf("Decrypt(%s) -> %s\n", crypted3, plain3)
 }
 
 func xor(a, b int) int {
@@ -54,66 +59,42 @@ func cesarDecrypt(x int) int {
 	return r
 }
 
-func padString(s string, l int) string {
-	for i := len(s); i < l; i++ {
-		s += "."
-	}
-	return s
-}
+// https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Cipher_block_chaining_(CBC)
+func encrypt(msg string) string {
+	var sb strings.Builder
+	var newC int
 
-func splitToBlocks(s string, l int) []string {
-	sLen := len(s)
-	iter := sLen / l
+	prevC := IV
 
-	if iter == 0 {
-		return []string{padString(s, l)}
-	}
-	var blocks []string
-	for i := 0; i < iter; i++ {
-		blocks = append(blocks, s[i*l:(i+1)*l])
-	}
+	for _, P := range msg {
+		newC = cesarEncrypt(xor(RUNE_MAP[P], prevC))
 
-	if sLen%l != 0 {
-		blocks = append(blocks, padString(s[iter*l:], l))
-	}
-
-	return blocks
-}
-
-func concatBlocks(blocks []string) string {
-	var result string
-	for _, block := range blocks {
-		result += block
-	}
-
-	return result
-}
-
-func encrypt(msg string, blockLen int) string {
-	var newBlocks []string
-	p := make([]int, blockLen)
-	newP := p
-
-	// init p for xor
-	for i := 0; i < blockLen; i++ {
-		p[i] = IV
-	}
-
-	blocks := splitToBlocks(msg, blockLen)
-	for _, block := range blocks {
-		var symAsInt int
-		var newInt int
-		var newBlock string
-		for i, symbol := range block {
-			symAsInt = RUNE_MAP[symbol]
-			newInt = cesarEncrypt(xor(p[i], symAsInt))
-			newBlock += string(BYTE_MAP[newInt])
-			newP[i] = newInt
+		_, err := sb.WriteRune(INT_MAP[newC])
+		if err != nil {
+			panic(err)
 		}
 
-		p = newP
-		newBlocks = append(newBlocks, newBlock)
+		prevC = newC
 	}
 
-	return concatBlocks(newBlocks)
+	return sb.String()
+}
+
+func decrypt(cipherText string) string {
+	var sb strings.Builder
+	var C int
+	prevC := IV
+
+	for _, CRune := range cipherText {
+		C = RUNE_MAP[CRune]
+
+		_, err := sb.WriteRune(INT_MAP[xor(cesarDecrypt(C), prevC)])
+		if err != nil {
+			panic(err)
+		}
+
+		prevC = C
+	}
+
+	return sb.String()
 }
