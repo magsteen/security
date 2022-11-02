@@ -26,6 +26,10 @@ var SUB_BYTES_TABLE = [][]StateValue{
 	{0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16},
 }
 
+var R_CONSTANTS = []int{
+	0x0001000, 0x0002000, 0x0004000,
+}
+
 const ALPH_HEX = "0123456789abcdef"
 
 var ALPH_RUNES = []rune(ALPH_HEX)
@@ -62,14 +66,19 @@ func main() {
 	// r := 2
 	// c := 2
 	//e := 8
+	key := 13
+
+	keys := generateKeys(key, 2)
+	fmt.Println(tableToString(keys))
+
+	fmt.Println(tableToString(SUB_BYTES_TABLE))
+
 	state := [][]StateValue{
 		{0x00, 0x01, 0x02},
 		{0x03, 0x04, 0x05},
 		{0x06, 0x07, 0x08},
 	}
 	fmt.Println(tableToString(state))
-
-	fmt.Println(tableToString(SUB_BYTES_TABLE))
 
 	state = subBytes(state)
 	fmt.Println(tableToString(state))
@@ -78,6 +87,9 @@ func main() {
 	fmt.Println(tableToString(state))
 
 	state = mixColumnsSkift(state)
+	fmt.Println(tableToString(state))
+
+	state = rotWord(state)
 	fmt.Println(tableToString(state))
 }
 
@@ -94,11 +106,15 @@ func splitHexStringToInts(s string) (row int, col int) {
 	return RUNE_MAP[runes[0]], RUNE_MAP[runes[1]]
 }
 
+func subByte(val StateValue) StateValue {
+	row, col := splitHexStringToInts(fmt.Sprintf("%02x", val))
+	return SUB_BYTES_TABLE[row][col]
+}
+
 func subBytes(state [][]StateValue) [][]StateValue {
 	for i, row := range state {
 		for j, val := range row {
-			newRow, newCol := splitHexStringToInts(fmt.Sprintf("%02x", val))
-			state[i][j] = SUB_BYTES_TABLE[newRow][newCol]
+			state[i][j] = subByte(val)
 		}
 	}
 
@@ -144,6 +160,48 @@ func mixColumnsSkift(state [][]StateValue) [][]StateValue {
 			newState[j][i] = b
 		}
 	}
+
+	return newState
+}
+
+func generateKeys(key, dim int) [][]StateValue {
+	keys := createState(dim)
+
+	for i := 0; i < dim; i++ {
+		for j := 0; j < dim; j++ {
+			r := (i + j + dim) % key
+			if r < 0 {
+				r += dim
+			}
+			keys[i][j] = StateValue(r)
+		}
+	}
+
+	return keys
+}
+
+func rotWord(state [][]StateValue) [][]StateValue {
+	stateLen := len(state)
+	newState := createState(stateLen)
+
+	for i, row := range state {
+		for j := range row {
+			if j == stateLen-1 {
+				newState[j][i] = state[0][(i+1)%stateLen]
+				continue
+			}
+			newState[j][i] = state[j+1][i]
+		}
+	}
+
+	return newState
+}
+
+func addRoundKey(state [][]StateValue, keys [][]StateValue) [][]StateValue {
+	stateLen := len(state)
+	newState := createState(stateLen)
+
+	// ..
 
 	return newState
 }
