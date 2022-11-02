@@ -26,9 +26,20 @@ var SUB_BYTES_TABLE = [][]StateValue{
 	{0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16},
 }
 
-var R_CONSTANTS = []int{
-	0x0001000, 0x0002000, 0x0004000,
-}
+// var R_CONSTANTS = [][][]StateValue{
+// 	{
+// 		{0x00, 0x00},
+// 		{0x01, 0x00},
+// 	},
+// 	{
+// 		{0x00, 0x00},
+// 		{0x02, 0x00},
+// 	},
+// 	{
+// 		{0x00, 0x00},
+// 		{0x04, 0x00},
+// 	},
+// }
 
 const ALPH_HEX = "0123456789abcdef"
 
@@ -61,42 +72,10 @@ func tableToString(t [][]StateValue) string {
 	return sb.String()
 }
 
-func main() {
-	// n := 2
-	// r := 2
-	// c := 2
-	//e := 8
-	key := 13
-
-	keys := generateKeys(key, 2)
-	fmt.Println(tableToString(keys))
-
-	fmt.Println(tableToString(SUB_BYTES_TABLE))
-
-	state := [][]StateValue{
-		{0x00, 0x01, 0x02},
-		{0x03, 0x04, 0x05},
-		{0x06, 0x07, 0x08},
-	}
-	fmt.Println(tableToString(state))
-
-	state = subBytes(state)
-	fmt.Println(tableToString(state))
-
-	state = shiftRows(state)
-	fmt.Println(tableToString(state))
-
-	state = mixColumnsSkift(state)
-	fmt.Println(tableToString(state))
-
-	state = rotWord(state)
-	fmt.Println(tableToString(state))
-}
-
-func createState(dim int) [][]StateValue {
-	res := make([][]StateValue, dim)
-	for i := 0; i < dim; i++ {
-		res[i] = make([]StateValue, dim)
+func initEmptyState(size int) [][]StateValue {
+	res := make([][]StateValue, size)
+	for i := 0; i < size; i++ {
+		res[i] = make([]StateValue, size)
 	}
 	return res
 }
@@ -123,7 +102,7 @@ func subBytes(state [][]StateValue) [][]StateValue {
 
 func shiftRows(state [][]StateValue) [][]StateValue {
 	maxShift := len(state)
-	newState := createState(maxShift)
+	newState := initEmptyState(maxShift)
 
 	for i, row := range state {
 		for j := range row {
@@ -147,9 +126,9 @@ func f(a StateValue) StateValue {
 	return a ^ b ^ c
 }
 
-func mixColumnsSkift(state [][]StateValue) [][]StateValue {
+func mixColumns(state [][]StateValue) [][]StateValue {
 	stateLen := len(state)
-	newState := createState(stateLen)
+	newState := initEmptyState(stateLen)
 
 	for i, row := range state {
 		for j := range row {
@@ -164,25 +143,81 @@ func mixColumnsSkift(state [][]StateValue) [][]StateValue {
 	return newState
 }
 
-func generateKeys(key, dim int) [][]StateValue {
-	keys := createState(dim)
+func xor(a, b StateValue) StateValue {
+	return a ^ b
+}
 
-	for i := 0; i < dim; i++ {
-		for j := 0; j < dim; j++ {
-			r := (i + j + dim) % key
-			if r < 0 {
-				r += dim
-			}
-			keys[i][j] = StateValue(r)
+func xorTable(state, other [][]StateValue) [][]StateValue {
+	newState := initEmptyState(len(state))
+
+	for i, row := range state {
+		for j, val := range row {
+			tmp := xor(val, other[i][j])
+			newState[i][j] = tmp
 		}
 	}
 
-	return keys
+	return newState
+}
+
+func generateRConstants(size int) [][][]StateValue {
+	rConstants := make([][][]StateValue, size)
+
+	var r StateValue
+	var prevR StateValue
+
+	for i := range rConstants {
+		if i == 0 {
+			r = StateValue(1)
+		} else if prevR < StateValue(0x80) {
+			r = prevR << 1
+		} else if prevR >= StateValue(0x80) {
+			r = (prevR << 1) ^ 0x1B
+		}
+
+		rConstants[i] = [][]StateValue{
+			{0x00, 0x00},
+			{r, 0x00},
+		}
+
+		prevR = r
+	}
+
+	return rConstants
+}
+
+func keyExpansion(key, size, rounds int, rConstants [][][]StateValue) [][][]StateValue {
+	// Generate starting startingKeys from key input
+	startingKeys := initEmptyState(size)
+	for i := 0; i < size; i++ {
+		for j := 0; j < size; j++ {
+			r := (i + j + size) % key
+			if r < 0 {
+				r += size
+			}
+			startingKeys[i][j] = StateValue(r)
+		}
+	}
+
+	// Concatenate keys into words
+	expandedKeys := make([][][]StateValue, rounds)
+	expandedKeys[0] = startingKeys
+	for i := 0; i < rounds-1; i++ {
+		expandedKeys[i+1] = xorTable(
+			expandedKeys[i],
+			xorTable(
+				subBytes(rotWord(expandedKeys[i])),
+				rConstants[i],
+			),
+		)
+	}
+
+	return expandedKeys
 }
 
 func rotWord(state [][]StateValue) [][]StateValue {
 	stateLen := len(state)
-	newState := createState(stateLen)
+	newState := initEmptyState(stateLen)
 
 	for i, row := range state {
 		for j := range row {
@@ -198,10 +233,56 @@ func rotWord(state [][]StateValue) [][]StateValue {
 }
 
 func addRoundKey(state [][]StateValue, keys [][]StateValue) [][]StateValue {
-	stateLen := len(state)
-	newState := createState(stateLen)
+	return xorTable(state, keys)
+}
 
-	// ..
+func encrypt(state [][]StateValue, keys [][][]StateValue) [][]StateValue {
+	//Rounds is derived from the number of keys
+	rounds := len(keys) - 1
 
-	return newState
+	// Initial round
+	state = addRoundKey(state, keys[0])
+
+	// Regular rounds
+	for i := 1; i < rounds; i++ {
+		state = subBytes(state)
+		state = shiftRows(state)
+		state = mixColumns(state)
+		state = addRoundKey(state, keys[i])
+	}
+
+	// Final round
+	state = subBytes(state)
+	state = shiftRows(state)
+	state = addRoundKey(state, keys[rounds])
+
+	return state
+}
+
+func main() {
+	rounds := 3
+	size := 2
+	key := 13
+
+	fmt.Println("R_CONSTANTS")
+	R_CONSTANTS := generateRConstants(rounds + 1)
+	for _, r := range R_CONSTANTS {
+		fmt.Println(tableToString(r))
+	}
+
+	fmt.Println("KEY_EXPANSION")
+	keys := keyExpansion(key, size, rounds+1, R_CONSTANTS)
+	for _, key := range keys {
+		fmt.Println(tableToString(key))
+	}
+
+	fmt.Println("START STATE")
+	state := [][]StateValue{
+		{0x00, 0x02},
+		{0x01, 0x03},
+	}
+	fmt.Println(tableToString(state))
+
+	fmt.Println("Encrypted")
+	fmt.Println(tableToString(encrypt(state, keys)))
 }
