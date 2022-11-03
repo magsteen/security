@@ -25,7 +25,7 @@ func createAlphabetMap() (map[rune]int, map[int]rune) {
 }
 
 func main() {
-	plain1 := "aaaaaa"
+	plain1 := "aaa"
 	crypted1 := encrypt(plain1)
 	fmt.Printf("Encrypt(%s) -> %s\n", plain1, crypted1)
 
