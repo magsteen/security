@@ -5,87 +5,46 @@ import (
 	"time"
 )
 
-func generateRConstants(size int) [][][]StateValue {
-	rConstants := make([][][]StateValue, size)
-
-	var r StateValue
-	var prevR StateValue
-
-	for i := range rConstants {
-		if i == 0 {
-			r = StateValue(1)
-		} else if prevR < StateValue(0x80) {
-			r = prevR << 1
-		} else if prevR >= StateValue(0x80) {
-			r = (prevR << 1) ^ 0x1B
-		}
-
-		rConstants[i] = initEmptyState(size)
-		rConstants[i][0][0] = r
-
-		prevR = r
-	}
-
-	return rConstants
-}
-
-func createKeyFromValues(stateSize int, keyValues ...StateValue) [][]StateValue {
-	if stateSize*stateSize != len(keyValues) {
-		panic("stateSize mismatch the amount of key words")
-	}
-	key := initEmptyState(stateSize)
-
-	for i := 0; i < stateSize; i++ {
-		colValues := keyValues[stateSize*i : stateSize*(i+1)]
-		for j := 0; j < stateSize; j++ {
-			key[j][i] = colValues[j]
-		}
-	}
-
-	return key
-}
-
-func createRandomKey(stateSize int) [][]StateValue {
+func createRandomKey(stateSize int) State {
 	rand.Seed(time.Now().UnixNano())
-	key := initEmptyState(stateSize)
+	key := NewZeroedState(stateSize, stateSize)
 
 	for i := 0; i < stateSize; i++ {
 		for j := 0; j < stateSize; j++ {
-			key[j][i] = StateValue(rand.Intn(255 + 1))
+			key[j][i] = byte(rand.Intn(255 + 1))
 		}
 	}
 	return key
 }
 
-func rotWord(word [][]StateValue) [][]StateValue {
+func rotWord(word State) State {
 	wordSize := len(word)
-	newWord := make([][]StateValue, wordSize)
+	newWord := make(State, wordSize)
 
 	for i, row := range word {
-		newWord[(i+1)%wordSize] = row
+		newWord[(i+wordSize-1)%wordSize] = row
 	}
 
 	return newWord
 }
 
-func keyExpansion(mainKey [][]StateValue, rounds int) [][][]StateValue {
-	colLen := len(mainKey)
+func keyExpansion(mainKey State, rounds int) []State {
 	N := len(mainKey[0])
-	expandedKeys := make([][][]StateValue, rounds)
+	expandedKeys := make([]State, rounds)
 
-	WiN := make([][]StateValue, colLen)
-	prevW := make([][]StateValue, colLen)
-	word := make([][]StateValue, colLen)
+	var WiN State
+	var prevW State
+	var word State
 
 	counter := 0
 	for i := 0; i < rounds-1; i++ {
-		roundKey := make([][]StateValue, N)
+		roundKey := make(State, N)
 
 		for j := 0; j < N; j++ {
 			if counter < N {
-				word = getTableColumn(mainKey, j)
+				word = mainKey.getTableColumn(j)
 			} else {
-				WiN = getTableColumn(expandedKeys[i-1], j)
+				WiN = expandedKeys[i-1].getTableColumn(j)
 
 				if counter >= N && counter%N == 0 {
 					word = xorTable(
@@ -102,7 +61,7 @@ func keyExpansion(mainKey [][]StateValue, rounds int) [][][]StateValue {
 				}
 			}
 
-			roundKey = appendTableColumn(roundKey, word)
+			roundKey = roundKey.appendColumn(word)
 			prevW = word
 			counter++
 		}

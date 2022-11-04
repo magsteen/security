@@ -2,9 +2,7 @@ package main
 
 import "fmt"
 
-type StateValue byte
-
-var R_CONSTANTS = [][][]StateValue{
+var R_CONSTANTS = []State{
 	{{0x01}, {0x00}, {0x00}, {0x00}},
 	{{0x02}, {0x00}, {0x00}, {0x00}},
 	{{0x04}, {0x00}, {0x00}, {0x00}},
@@ -34,14 +32,14 @@ func main() {
 	fmt.Println("KEY_EXPANSION")
 	keys := keyExpansion(key, rounds+1)
 	for _, key := range keys {
-		fmt.Println(tableToString(key))
+		fmt.Println(key.tableToString())
 	}
 
 	fmt.Println("START STATE")
 	fmt.Printf("text: %s\n", msg)
 	fmt.Println("state block(s):")
 	for _, state := range states {
-		fmt.Println(tableToString(state))
+		fmt.Println(state.tableToString())
 	}
 
 	fmt.Println("END STATE (ENCRYPTED)")
@@ -49,6 +47,6 @@ func main() {
 	fmt.Printf("text: %s\n", stateBlocksToText(encryptedStates))
 	fmt.Println("state block(s):")
 	for _, encryptedState := range encryptedStates {
-		fmt.Println(tableToString(encryptedState))
+		fmt.Println(encryptedState.tableToString())
 	}
 }

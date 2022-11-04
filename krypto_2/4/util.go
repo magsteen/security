@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -27,28 +26,7 @@ func splitHexStringToInts(s string) (row int, col int) {
 	return RUNE_MAP[runes[0]], RUNE_MAP[runes[1]]
 }
 
-func tableToString(t [][]StateValue) string {
-	var sb strings.Builder
-
-	for _, row := range t {
-		sb.WriteString(" ")
-		for _, val := range row {
-			sb.WriteString(fmt.Sprintf("%02x ", val))
-		}
-		sb.WriteString("\n")
-	}
-
-	return sb.String()
-}
-
-func initEmptyState(size int) [][]StateValue {
-	res := make([][]StateValue, size)
-	for i := 0; i < size; i++ {
-		res[i] = make([]StateValue, size)
-	}
-	return res
-}
-
+// Simple and probably crackable padding, due to time constraints
 func padString(s string, l int) string {
 	for i := len(s); i < l; i++ {
 		s += " "
@@ -75,15 +53,16 @@ func splitToBlocks(s string, l int) []string {
 	return blocks
 }
 
-func textToStateBlocks(msg string, size int) [][][]StateValue {
+func textToStateBlocks(msg string, size int) []State {
 	blocks := splitToBlocks(msg, size*size)
 
-	states := make([][][]StateValue, len(blocks))
+	states := make([]State, len(blocks))
 
 	for i, block := range blocks {
-		states[i] = initEmptyState(size)
-		values := []StateValue(block)
+		states[i] = NewZeroedState(size, size)
+		values := []byte(block)
 		valIndex := 0
+
 		for j := 0; j < size; j++ {
 			for k := 0; k < size; k++ {
 				states[i][k][j] = values[valIndex]
@@ -95,7 +74,7 @@ func textToStateBlocks(msg string, size int) [][][]StateValue {
 	return states
 }
 
-func stateBlocksToText(states [][][]StateValue) string {
+func stateBlocksToText(states []State) string {
 	var sb strings.Builder
 	for _, block := range states {
 		for j, row := range block {
@@ -106,58 +85,4 @@ func stateBlocksToText(states [][][]StateValue) string {
 	}
 
 	return sb.String()
-}
-
-func xor(a, b StateValue) StateValue {
-	return a ^ b
-}
-
-func xorTable(state, other [][]StateValue) [][]StateValue {
-	numRows := len(state)
-	numCols := len(state[0])
-	newState := make([][]StateValue, numRows)
-
-	for i, row := range state {
-		newState[i] = make([]StateValue, numCols)
-		for j, val := range row {
-			newState[i][j] = xor(val, other[i][j])
-		}
-	}
-
-	return newState
-}
-
-func getTableColumn(t [][]StateValue, colNum int) [][]StateValue {
-	column := make([][]StateValue, len(t))
-
-	for i := 0; i < len(column); i++ {
-		column[i] = make([]StateValue, 1)
-		column[i][0] = t[i][colNum]
-	}
-
-	return column
-}
-
-func appendTableColumn(t [][]StateValue, column [][]StateValue) [][]StateValue {
-	if len(t[0]) == 0 {
-		return column
-	}
-
-	numRows := len(t)
-	numCols := len(t[0]) + 1
-
-	newTable := make([][]StateValue, numRows)
-	for i := 0; i < numRows; i++ {
-		newTable[i] = make([]StateValue, numCols)
-
-		for j := 0; j < numCols-1; j++ {
-			newTable[i][j] = t[i][j]
-		}
-	}
-
-	for i := 0; i < numRows; i++ {
-		newTable[i][numCols-1] = column[i][0]
-	}
-
-	return newTable
 }
