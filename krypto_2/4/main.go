@@ -23,7 +23,7 @@ var R_CONSTANTS = []State{
 
 func main() {
 	size := 4
-	rounds := 14
+	rounds := 10
 	msg := "Dette er en text" + "En annen text"
 
 	states := textToStateBlocks(msg, size)
@@ -31,8 +31,9 @@ func main() {
 
 	fmt.Println("KEY_EXPANSION")
 	keys := keyExpansion(key, rounds+1)
-	for _, key := range keys {
-		fmt.Println(key.tableToString())
+	for i, key := range keys {
+
+		fmt.Printf("Key %d:\n%s\n", i, key.tableToString())
 	}
 
 	fmt.Println("START STATE")

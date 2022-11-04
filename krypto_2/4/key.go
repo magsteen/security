@@ -37,7 +37,7 @@ func keyExpansion(mainKey State, rounds int) []State {
 	var word State
 
 	counter := 0
-	for i := 0; i < rounds-1; i++ {
+	for i := 0; i < rounds; i++ {
 		roundKey := make(State, N)
 
 		for j := 0; j < N; j++ {

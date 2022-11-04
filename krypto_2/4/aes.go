@@ -83,7 +83,7 @@ func addRoundKey(state State, keys State) State {
 
 func encryptBlock(state State, keys []State) State {
 	//Rounds is derived from the number of keys
-	rounds := len(keys) - 2
+	rounds := len(keys) - 1
 
 	// Initial round
 	state = addRoundKey(state, keys[0])
